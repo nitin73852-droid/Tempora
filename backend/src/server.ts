@@ -58,6 +58,31 @@ app.get('/health', (req, res) => {
 app.use('/api/rooms', roomRoutes);
 app.get('/api/files/:fileId', serveFile);
 
+// 404 Fallback with CORS Headers
+app.use((req, res) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.status(404).json({ error: 'Endpoint not found' });
+});
+
+// Global Error Handler with CORS Headers
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  console.error('[Global Error]:', err);
+  res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
+});
+
 // Dynamic CORS configuration for Socket.IO WebSockets
 const io = new Server(httpServer, {
   cors: {
