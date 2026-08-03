@@ -1,0 +1,36 @@
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
+node_modules/
+
+# Build & Output directories
+dist/
+build/
+uploads/
+
+# Environment and Secret files
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+*.env
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Temp files & caches
+.cache/
+.temp/
+*.timestamp*.mjs
