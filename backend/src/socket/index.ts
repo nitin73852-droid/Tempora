@@ -4,7 +4,7 @@ import { messageService } from '../services/messageService';
 import { memberService } from '../services/memberService';
 import { fileService } from '../services/fileService';
 import { roomLifecycleService } from '../services/roomLifecycleService';
-import { MessagePayload, ParticipantMetadata } from '../types';
+import { MessagePayload } from '../types';
 import { generateToken } from '../utils/jwt';
 import { checkRateLimit, sanitizeContent, MAX_NICKNAME_LENGTH } from '../middleware/rateLimit';
 
@@ -92,12 +92,8 @@ export const initSocket = (io: Server) => {
             return;
           }
 
-          const roomObj = await roomService.createRoom(roomId, existingRoom.name, existingRoom.type, existingRoom.duration, undefined, sanitizedNickname, memberId, avatar);
-
-          if (!roomObj) {
-            if (callback) callback({ success: false, error: 'Room expired or does not exist.' });
-            return;
-          }
+          // Add member to members table (or update nickname/avatar on reconnect)
+          await memberService.addMember(roomId, memberId, sanitizedNickname, avatar);
 
           memberSocketMap.set(memberId, socket.id);
           socketMetaMap.set(socket.id, { roomId, memberId, nickname: sanitizedNickname });
@@ -124,12 +120,12 @@ export const initSocket = (io: Server) => {
             token,
             room: {
               id: room?.id || roomId,
-              name: room?.name || roomObj.name,
-              type: room?.type || roomObj.type,
-              duration: room?.duration || roomObj.duration,
-              status: room?.status || roomObj.status,
-              hostId: room?.hostId || roomObj.hostId,
-              expiresAt: room?.expiresAt || roomObj.expiresAt,
+              name: room?.name || existingRoom.name,
+              type: room?.type || existingRoom.type,
+              duration: room?.duration || existingRoom.duration,
+              status: room?.status || existingRoom.status,
+              hostId: room?.hostId || existingRoom.hostId,
+              expiresAt: room?.expiresAt || existingRoom.expiresAt,
               isLocked: Boolean(room?.isLocked),
             },
             member: { memberId, nickname: sanitizedNickname, role: room?.hostId === memberId ? 'host' : 'member' },
